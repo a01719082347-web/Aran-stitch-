@@ -1,0 +1,6 @@
+{
+  "name": "Aran Stitch",
+  "description": "Premium Fashion Brand offering Three Piece, Burqa, and Gents T-Shirts with seamless WhatsApp ordering.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

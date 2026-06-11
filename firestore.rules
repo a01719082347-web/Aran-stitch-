@@ -1,0 +1,109 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() { 
+      // Basic static admin whitelist. Also checking the users collection.
+      return isSignedIn() && (request.auth.token.email == 'namemdasraful@gmail.com' || 
+             (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'));
+    }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'role', 'createdAt', 'updatedAt'])
+        && data.email is string && data.email.size() <= 100
+        && data.role in ['user', 'admin']
+        && (data.get('name', '') is string && data.get('name', '').size() <= 100)
+        && (data.get('phone', '') is string && data.get('phone', '').size() <= 20)
+        && (data.get('address', '') is string && data.get('address', '').size() <= 500)
+        && (data.get('wishlist', []) is list && data.get('wishlist', []).size() <= 100);
+    }
+
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isAdmin() || request.auth.uid == userId);
+      allow list: if isAdmin();
+      allow create: if isValidId(userId) && request.auth.uid == userId
+                    && isValidUser(incoming())
+                    && incoming().createdAt == request.time
+                    && (incoming().role == 'user' || (incoming().role == 'admin' && request.auth.token.email == 'namemdasraful@gmail.com'));
+      allow update: if isValidId(userId) && (
+        (request.auth.uid == userId && isValidUser(incoming()) && incoming().updatedAt == request.time && incoming().role == existing().role && incoming().createdAt == existing().createdAt && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'phone', 'address', 'wishlist', 'updatedAt']))
+        || isAdmin()
+      );
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['name', 'price', 'createdAt'])
+        && data.name is string && data.name.size() <= 200
+        && (data.get('description', '') is string && data.get('description', '').size() <= 2000)
+        && (data.price is number)
+        && (data.get('category', '') is string && data.get('category', '').size() <= 50)
+        && (data.get('images', []) is list && data.get('images', []).size() <= 10)
+        && (data.get('tag', '') is string && data.get('tag', '').size() <= 50)
+        && (data.get('rating', 0) is number)
+        && (data.get('reviewsCount', 0) is number);
+    }
+
+    match /products/{productId} {
+      allow read: if isValidId(productId);
+      allow list: if true;
+      allow write: if isAdmin();
+    }
+
+    function isValidReview(data) {
+      return data.keys().hasAll(['productId', 'userId', 'rating', 'createdAt'])
+        && data.productId is string && data.productId.size() <= 128
+        && data.userId is string && data.userId.size() <= 128
+        && data.rating is number && data.rating >= 1 && data.rating <= 5
+        && (data.get('comment', '') is string && data.get('comment', '').size() <= 500)
+        && (data.get('userName', '') is string && data.get('userName', '').size() <= 100);
+    }
+
+    match /reviews/{reviewId} {
+      allow get: if isValidId(reviewId);
+      allow list: if true;
+      allow create: if isValidId(reviewId) && isSignedIn()
+                   && isValidReview(incoming())
+                   && incoming().userId == request.auth.uid
+                   && incoming().createdAt == request.time
+                   && exists(/databases/$(database)/documents/products/$(incoming().productId));
+      allow update: if isAdmin();
+      allow delete: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['userId', 'items', 'total', 'status', 'createdAt'])
+        && data.userId is string && data.userId.size() <= 128
+        && (data.get('customerName', '') is string && data.get('customerName', '').size() <= 100)
+        && (data.get('phone', '') is string && data.get('phone', '').size() <= 20)
+        && (data.get('address', '') is string && data.get('address', '').size() <= 500)
+        && data.items is list && data.items.size() <= 100
+        && (data.get('subtotal', 0) is number)
+        && (data.get('deliveryCharge', 0) is number)
+        && data.total is number 
+        && data.status in ['Pending', 'Packaging', 'Shipping', 'Delivered', 'Cancelled']
+        && (data.get('trackingId', '') is string && data.get('trackingId', '').size() <= 100);
+    }
+
+    match /orders/{orderId} {
+      allow get: if isValidId(orderId) && (isAdmin() || (isSignedIn() && existing().userId == request.auth.uid));
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isValidId(orderId)
+                    && isValidOrder(incoming())
+                    && incoming().createdAt == request.time
+                    && incoming().status == 'Pending'
+                    && ((isSignedIn() && incoming().userId == request.auth.uid) || (!isSignedIn() && incoming().userId == 'guest'));
+      allow update: if isValidId(orderId) && (
+        (isSignedIn() && request.auth.uid == existing().userId && existing().status == 'Pending' && incoming().status == 'Cancelled' && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']) && incoming().updatedAt == request.time)
+        || isAdmin()
+      );
+    }
+  }
+}

@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Dancing+Script:wght@700&family=Great+Vibes&family=Lato:wght@700&family=Merriweather:wght@700&family=Montserrat:wght@700&family=Oswald:wght@700&family=Pacifico&family=Playfair+Display:wght@700&family=Roboto:wght@700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-gold: #ffc107;
+  --color-gold-hover: #e0a800;
+  --color-dark-bg: #f8f9fa;
+  --color-panel-bg: #ffffff;
+}
+
+body {
+  background-color: var(--color-dark-bg);
+  color: #111827;
+  scroll-behavior: smooth;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Base Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-dark-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Input Styles for Forms */
+input, select, textarea {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #111827;
+  font-size: 0.875rem;
+  padding: 0.5rem;
+  outline: none;
+  border-radius: 4px;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #94a3b8;
+}
+
+input.pl-10, select.pl-10, textarea.pl-10 {
+  padding-left: 2.5rem !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 1px var(--color-gold);
+}
+
+.gold-text {
+  color: #d97706; /* A slightly darker gold/orange for text on light backgrounds to ensure contrast */
+}
+
+.bg-gold {
+  background-color: var(--color-gold);
+}
+
+.border-gold {
+  border-color: var(--color-gold);
+}
+
+.btn-gold {
+  background-color: var(--color-gold);
+  color: #000;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.btn-gold:hover {
+  background-color: var(--color-gold-hover);
+  transform: translateY(-1px);
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
