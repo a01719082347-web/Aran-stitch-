@@ -50,6 +50,8 @@ export interface Product {
   sizes: string[];
   colors: string[];
   reviews: Review[];
+  adminRating?: number;
+  adminReviewCount?: number;
   tag?: 'New Arrival' | 'Trending' | 'Popular' | 'None';
 }
 

@@ -1,4 +1,4 @@
-import { X, Star, ShoppingCart, Zap, Trash2, MessageCircle, Scissors } from 'lucide-react';
+import { X, Star, ShoppingCart, Zap, Trash2, MessageCircle, Scissors, Share2 } from 'lucide-react';
 import { Product, Review } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -120,12 +120,48 @@ export default function ProductDetailsModal({ product, isOpen, onClose, onBuyNow
             </div>
 
             <div className="md:w-1/2 p-6 md:p-8 overflow-y-auto flex flex-col h-[50vh] md:h-auto bg-white">
-              <h2 className="text-2xl font-serif font-bold text-gray-900 mb-2">{product.name}</h2>
-              <div className="flex items-center gap-4 mb-4">
-                <span className="text-2xl font-bold text-teal-700">৳ {product.price.toLocaleString()}</span>
-                {product.originalPrice && (
-                  <span className="text-gray-400 line-through">৳ {product.originalPrice.toLocaleString()}</span>
-                )}
+              <h2 className="text-2xl font-serif font-bold text-gray-900 mb-1">{product.name}</h2>
+              
+              <div className="flex items-center gap-1 mb-4">
+                {[1, 2, 3, 4, 5].map(star => {
+                  const ratingVal = product.adminRating !== undefined ? product.adminRating : (reviews.length > 0 ? reviews.reduce((a,c)=>a+c.rating,0)/reviews.length : 0);
+                  return (
+                    <Star 
+                      key={star}
+                      className={`w-3 h-3 ${star <= ratingVal ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200'}`}
+                    />
+                  );
+                })}
+                <span className="text-xs text-gray-500 ml-1">
+                  ({product.adminReviewCount !== undefined ? product.adminReviewCount : reviews.length} {lang === 'bn' ? 'রিভিউ' : 'reviews'})
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-4">
+                  <span className="text-2xl font-bold text-teal-700">৳ {product.price.toLocaleString()}</span>
+                  {product.originalPrice && (
+                    <span className="text-gray-400 line-through">৳ {product.originalPrice.toLocaleString()}</span>
+                  )}
+                </div>
+                <button 
+                  onClick={() => {
+                    const url = `${window.location.origin}/?product=${product.id}`;
+                    if (navigator.share) {
+                      navigator.share({
+                        title: product.name,
+                        text: `Check out ${product.name} at ARAN STITCH!`,
+                        url: url
+                      }).catch(console.error);
+                    } else {
+                      navigator.clipboard.writeText(url);
+                      toast.success(lang === 'bn' ? 'লিঙ্ক কপি করা হয়েছে!' : 'Link copied to clipboard!');
+                    }
+                  }}
+                  className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded text-sm font-bold text-gray-600 hover:bg-gray-50 focus:outline-none transition-colors"
+                >
+                  <Share2 className="w-4 h-4" /> {lang === 'bn' ? 'শেয়ার' : 'Share'}
+                </button>
               </div>
 
               <div className="prose prose-sm text-gray-600 mb-6 max-w-none">

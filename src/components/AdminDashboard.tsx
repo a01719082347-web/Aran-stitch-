@@ -89,7 +89,9 @@ export default function AdminDashboard({ products, setProducts, onExit }: AdminD
       },
       measurementTable: [],
       isBabyProduct: false,
-      tag: 'None'
+      tag: 'None',
+      adminRating: undefined,
+      adminReviewCount: undefined
     });
     setSizesStr('M, L, XL');
     setColorsStr('Black, White');
@@ -454,6 +456,14 @@ export default function AdminDashboard({ products, setProducts, onExit }: AdminD
                         <option value="Trending">Trending</option>
                         <option value="Popular">Popular</option>
                       </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase text-gray-600 font-medium mb-1">Override Rating (1-5)</label>
+                      <input type="number" step="0.1" min="1" max="5" className="w-full" value={newProduct.adminRating || ''} onChange={e => setNewProduct({...newProduct, adminRating: e.target.value ? Number(e.target.value) : undefined})} placeholder="e.g. 4.5" />
+                    </div>
+                    <div>
+                      <label className="block text-xs uppercase text-gray-600 font-medium mb-1">Override Review Count</label>
+                      <input type="number" min="0" className="w-full" value={newProduct.adminReviewCount || ''} onChange={e => setNewProduct({...newProduct, adminReviewCount: e.target.value ? Number(e.target.value) : undefined})} placeholder="e.g. 120" />
                     </div>
                     <div className="pt-2">
                       <label className="flex items-center gap-2 text-xs uppercase text-gray-500 mb-1 cursor-pointer">

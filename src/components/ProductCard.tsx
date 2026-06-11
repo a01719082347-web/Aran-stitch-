@@ -1,4 +1,4 @@
-import { Star, ShoppingCart, MessageCircle, Zap, Heart, Scissors, ZoomIn, X } from 'lucide-react';
+import { Star, ShoppingCart, MessageCircle, Zap, Heart, Scissors, ZoomIn, X, Share2 } from 'lucide-react';
 import { Product } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -97,9 +97,15 @@ export default function ProductCard({ product, onBuyNow, onDetails }: ProductCar
     };
   }, [imagesList.length]);
 
-  const avgRating = product.reviews.length > 0
-    ? product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.reviews.length
-    : 0;
+  const avgRating = product.adminRating !== undefined 
+    ? product.adminRating 
+    : (product.reviews.length > 0
+      ? product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.reviews.length
+      : 0);
+
+  const reviewCount = product.adminReviewCount !== undefined 
+    ? product.adminReviewCount 
+    : product.reviews.length;
 
   const discountPercentage = product.originalPrice && product.originalPrice > product.price
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -143,6 +149,27 @@ export default function ProductCard({ product, onBuyNow, onDetails }: ProductCar
           <ZoomIn className="w-4 h-4 md:w-5 md:h-5" />
         </div>
 
+        {/* Share Button */}
+        <button 
+          onClick={(e) => { 
+            e.stopPropagation(); 
+            const url = `${window.location.origin}/?product=${product.id}`;
+            if (navigator.share) {
+              navigator.share({
+                title: product.name,
+                text: `Check out ${product.name} at ARAN STITCH!`,
+                url: url
+              }).catch(console.error);
+            } else {
+              navigator.clipboard.writeText(url);
+              toast.success(lang === 'bn' ? 'লিঙ্ক কপি করা হয়েছে!' : 'Link copied to clipboard!');
+            }
+          }}
+          className="absolute top-12 right-2 bg-white/70 p-1.5 md:p-2 rounded-full shadow-sm text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white z-10"
+        >
+          <Share2 className="w-4 h-4 md:w-5 md:h-5" />
+        </button>
+
         {/* Wishlist Button */}
         <button 
           onClick={(e) => { e.stopPropagation(); toggleWishlist(); }}
@@ -162,14 +189,14 @@ export default function ProductCard({ product, onBuyNow, onDetails }: ProductCar
         <h3 onClick={onDetails} className="font-medium text-[13px] md:text-sm text-gray-900 mb-0.5 line-clamp-2 cursor-pointer hover:text-yellow-600 transition-colors">{product.name}</h3>
         <p className="text-gray-400 text-[10px] mb-2">{getCategoryLabel(product.category)}</p>
 
-        <div className="flex items-center gap-1 mb-2 hidden">
+        <div className="flex items-center gap-1 mb-2">
           {[1, 2, 3, 4, 5].map(star => (
             <Star 
               key={star}
               className={`w-3 h-3 ${star <= avgRating ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200'}`}
             />
           ))}
-          <span className="text-[10px] text-gray-500 ml-1">({product.reviews.length})</span>
+          <span className="text-[10px] text-gray-500 ml-1">({reviewCount})</span>
         </div>
         
         <div className="flex flex-col mt-auto pt-2 gap-2">

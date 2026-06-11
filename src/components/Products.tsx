@@ -2,7 +2,7 @@ import ProductCardDefault from './ProductCard';
 import { Product, CartItem } from '../types';
 import { motion } from 'motion/react';
 import { Minus, Plus, Trash2, ArrowRight } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getDirectImageUrl } from '../utils';
 import ProductDetailsModal from './ProductDetailsModal';
@@ -21,6 +21,17 @@ export default function ProductsSection({ searchTerm, onBuyNow, products, cart, 
   const { t, lang } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [detailsProduct, setDetailsProduct] = useState<Product | null>(null);
+  
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get('product');
+    if (productId && products.length > 0) {
+      const product = products.find(p => p.id === productId);
+      if (product) {
+        setDetailsProduct(product);
+      }
+    }
+  }, [products]);
   
   const dynamicCategories = Array.from(new Set(products.map(p => p.category)));
   const categories = ['All', ...dynamicCategories];
