@@ -1,9 +1,10 @@
 {
-  "apiKey": "AIzaSyC4KXku9M8gK3b4FRAtbPVjkVdmhWh5ZOg",
-  "authDomain": "aran-stitch.firebaseapp.com",
-  "projectId": "aran-stitch",
-  "storageBucket": "aran-stitch.firebasestorage.app",
-  "messagingSenderId": "70852008501",
-  "appId": "1:70852008501:web:6256d1f248c452d1f7ef7c",
-  "measurementId": "G-FZ3VCH9V8Y"
+  "projectId": "hazel-bird-t9tls",
+  "appId": "1:579287524843:web:8507a7e8eff552a9f5a5ae",
+  "apiKey": "AIzaSyDDeZUm-xdKoh207IiZyBtHXgZ-4cGnw8Y",
+  "authDomain": "hazel-bird-t9tls.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-aace6282-9afd-4d1a-9b2a-6e5aac250ee4",
+  "storageBucket": "hazel-bird-t9tls.firebasestorage.app",
+  "messagingSenderId": "579287524843",
+  "measurementId": ""
 }

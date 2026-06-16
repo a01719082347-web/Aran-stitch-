@@ -1,8 +1,11 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { Product } from '../types';
-import { ArrowLeft, Trash2, Plus, Image as ImageIcon, X, Info, Package, Settings, Edit, LogOut } from 'lucide-react';
+import { ArrowLeft, Trash2, Plus, Image as ImageIcon, X, Info, Package, Settings, Edit, LogOut, Star } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
+import { db } from '../lib/firebase';
+import { collection, getDocs, deleteDoc, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { toast } from 'react-toastify';
 
 interface AdminDashboardProps {
   products: Product[];
@@ -12,7 +15,7 @@ interface AdminDashboardProps {
 
 export default function AdminDashboard({ products, setProducts, onExit }: AdminDashboardProps) {
   const { logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'products' | 'site-content'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'site-content' | 'reviews'>('products');
   const [isAdding, setIsAdding] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [sizesStr, setSizesStr] = useState('M, L, XL');
@@ -22,6 +25,77 @@ export default function AdminDashboard({ products, setProducts, onExit }: AdminD
   const [editLang, setEditLang] = useState<'en' | 'bn'>(lang);
   
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  const [dbReviews, setDbReviews] = useState<any[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+
+  // Automatically sync local catalog products to Firestore so the review 'exists' check can always pass
+  useEffect(() => {
+    const syncAllCatalogToFirestore = async () => {
+      try {
+        for (const p of products) {
+          await setDoc(doc(db, 'products', p.id), {
+            name: p.name,
+            price: p.price,
+            description: p.description || '',
+            category: p.category || '',
+            images: p.images || [],
+            tag: p.tag || 'None',
+            rating: p.adminRating || 5,
+            reviewsCount: p.adminReviewCount || 1,
+            createdAt: serverTimestamp()
+          });
+        }
+        console.log("All products successfully synced to Firestore products collection");
+      } catch (err) {
+        console.error("Failed to sync some products to Firestore:", err);
+      }
+    };
+    if (products && products.length > 0) {
+      syncAllCatalogToFirestore();
+    }
+  }, [products]);
+
+  // Fetch reviews when activeTab is 'reviews'
+  useEffect(() => {
+    if (activeTab === 'reviews') {
+      const fetchAllReviews = async () => {
+        setLoadingReviews(true);
+        try {
+          const snap = await getDocs(collection(db, 'reviews'));
+          const list = snap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          // Sort by creation time (descending)
+          list.sort((a: any, b: any) => {
+            const timeA = a.createdAt?.seconds || 0;
+            const timeB = b.createdAt?.seconds || 0;
+            return timeB - timeA;
+          });
+          setDbReviews(list);
+        } catch (error) {
+          console.error("Error fetching reviews:", error);
+          toast.error("Failed to load reviews");
+        } finally {
+          setLoadingReviews(false);
+        }
+      };
+      fetchAllReviews();
+    }
+  }, [activeTab]);
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!window.confirm(lang === 'bn' ? 'আপনি কি নিশ্চিত যে এই রিভিউটি ডিলেট করতে চান?' : 'Are you sure you want to delete this review?')) return;
+    try {
+      await deleteDoc(doc(db, 'reviews', reviewId));
+      setDbReviews(prev => prev.filter(r => r.id !== reviewId));
+      toast.success(lang === 'bn' ? 'রিভিউ সফলভাবে মুছে ফেলা হয়েছে!' : 'Review deleted successfully!');
+    } catch (error) {
+      console.error("Error deleting review:", error);
+      toast.error(lang === 'bn' ? 'রিভিউ মুছে ফেলা সম্ভব হয়নি' : 'Failed to delete review');
+    }
+  };
 
   const [newProduct, setNewProduct] = useState<Partial<Product>>({
     name: '',
@@ -98,7 +172,7 @@ export default function AdminDashboard({ products, setProducts, onExit }: AdminD
     setImagesStr('');
   };
 
-  const handleAddSubmit = (e: FormEvent) => {
+  const handleAddSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const productData: Product = {
       ...(newProduct as Product),
@@ -108,6 +182,23 @@ export default function AdminDashboard({ products, setProducts, onExit }: AdminD
       id: editingProductId || Date.now().toString(),
       reviews: newProduct.reviews || []
     };
+    
+    try {
+      await setDoc(doc(db, 'products', productData.id), {
+        name: productData.name,
+        price: productData.price,
+        description: productData.description || '',
+        category: productData.category || '',
+        images: productData.images || [],
+        tag: productData.tag || 'None',
+        rating: productData.adminRating || 5,
+        reviewsCount: productData.adminReviewCount || 1,
+        createdAt: serverTimestamp()
+      });
+      console.log(`Product ${productData.id} synced to Firestore`);
+    } catch (err) {
+      console.error("Firestore product sync failed: ", err);
+    }
     
     if (editingProductId) {
       setProducts(products.map(p => p.id === editingProductId ? productData : p));
@@ -149,6 +240,12 @@ export default function AdminDashboard({ products, setProducts, onExit }: AdminD
               className={`flex items-center gap-2 px-3 py-2 md:px-4 rounded text-[10px] md:text-sm uppercase font-bold transition-colors ${activeTab === 'products' ? 'bg-gold text-black' : 'text-gray-600 font-medium hover:text-gray-900'}`}
             >
               <Package className="w-4 h-4" /> Products
+            </button>
+            <button 
+              onClick={() => setActiveTab('reviews')}
+              className={`flex items-center gap-2 px-3 py-2 md:px-4 rounded text-[10px] md:text-sm uppercase font-bold transition-colors ${activeTab === 'reviews' ? 'bg-gold text-black' : 'text-gray-600 font-medium hover:text-gray-900'}`}
+            >
+              <Star className="w-4 h-4" /> Reviews
             </button>
             <button 
               onClick={() => setActiveTab('site-content')}
@@ -638,6 +735,112 @@ export default function AdminDashboard({ products, setProducts, onExit }: AdminD
               </table>
             </div>
           </>
+        )}
+
+        {activeTab === 'reviews' && (
+          <div className="bg-white shadow-md border border-gray-200 rounded p-6 md:p-10 shadow-xl">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-serif font-bold gold-text">
+                {lang === 'bn' ? 'কাস্টমার রিভিউ ম্যানেজমেন্ট' : 'Customer Reviews Management'}
+              </h2>
+              <span className="text-xs bg-zinc-100 text-zinc-900 border border-zinc-200 px-3 py-1 font-bold uppercase tracking-wider rounded">
+                {dbReviews.length} {lang === 'bn' ? 'মোট রিভিউ' : 'Total Reviews'}
+              </span>
+            </div>
+
+            {loadingReviews ? (
+              <div className="flex flex-col items-center justify-center p-12 gap-3">
+                <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent animate-spin rounded-full"></div>
+                <p className="text-sm text-gray-500 font-medium animate-pulse">
+                  {lang === 'bn' ? 'রিভিউ লোড হচ্ছে...' : 'Loading reviews from secure database...'}
+                </p>
+              </div>
+            ) : dbReviews.length === 0 ? (
+              <div className="border border-dashed border-gray-200 rounded-lg p-12 text-center bg-gray-50/50">
+                <Star className="w-12 h-12 text-gray-300 mx-auto mb-3 stroke-1" />
+                <p className="text-gray-500 text-sm font-bold uppercase tracking-wider">
+                  {lang === 'bn' ? 'কোনো রিভিউ পাওয়া যায়নি' : 'No customer reviews found'}
+                </p>
+                <p className="text-gray-400 text-xs mt-1">
+                  {lang === 'bn' ? 'প্রোডাক্ট ডিটেইলস মডাল থেকে কাস্টমাররা রিভিউ জমা দিতে পারেন।' : 'Reviews submitted by users on product pages will appear here.'}
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[700px]">
+                  <thead>
+                    <tr className="border-b border-gray-200 bg-gray-50 text-xs uppercase tracking-widest text-zinc-600 font-bold">
+                      <th className="p-4">{lang === 'bn' ? 'প্রোডাক্ট' : 'Product'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'কাস্টমার' : 'Customer'}</th>
+                      <th className="p-4 w-32">{lang === 'bn' ? 'রেটিং' : 'Rating'}</th>
+                      <th className="p-4">{lang === 'bn' ? 'মন্তব্য' : 'Comment'}</th>
+                      <th className="p-4 w-44">{lang === 'bn' ? 'তারিখ' : 'Date'}</th>
+                      <th className="p-4 w-20 text-center">{lang === 'bn' ? 'অ্যাকশন' : 'Action'}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {dbReviews.map((rv) => {
+                      const product = products.find((p) => p.id === rv.productId);
+                      const productName = product ? product.name : (lang === 'bn' ? 'অজানা প্রোডাক্ট' : 'Unknown Product');
+                      const reviewerName = rv.userName || rv.user || 'Guest User';
+                      let reviewDateStr = '...';
+                      if (rv.createdAt?.seconds) {
+                        reviewDateStr = new Date(rv.createdAt.seconds * 1000).toLocaleString(lang === 'bn' ? 'bn-BD' : 'en-US', {
+                          dateStyle: 'medium',
+                          timeStyle: 'short'
+                        });
+                      }
+
+                      return (
+                        <tr key={rv.id} className="hover:bg-gray-50/40 transition-colors">
+                          <td className="p-4">
+                            <span className="font-bold text-gray-900 text-sm block max-w-[180px] truncate" title={productName}>
+                              {productName}
+                            </span>
+                            <span className="text-[10px] text-gray-400 font-mono block">ID: {rv.productId}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-sm font-semibold text-zinc-900 block">{reviewerName}</span>
+                            <span className="text-[10px] text-gray-500 block">UID: {rv.userId}</span>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex gap-0.5">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                  key={star}
+                                  className={`w-4.5 h-4.5 ${
+                                    star <= rv.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200 fill-gray-200'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs text-gray-500 mt-1 block">({rv.rating}/5)</span>
+                          </td>
+                          <td className="p-4">
+                            <p className="text-sm text-gray-700 whitespace-pre-wrap max-w-sm line-clamp-3 leading-relaxed" title={rv.comment}>
+                              {rv.comment}
+                            </p>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-xs text-gray-600 font-medium block whitespace-nowrap">{reviewDateStr}</span>
+                          </td>
+                          <td className="p-4 text-center">
+                            <button
+                              onClick={() => handleDeleteReview(rv.id)}
+                              className="text-gray-400 hover:text-red-500 transition-colors p-2 bg-gray-50 hover:bg-red-50 hover:border-red-200 rounded border border-gray-200 outline-none"
+                              title={lang === 'bn' ? 'ডিলেট করুন' : 'Delete Review'}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         )}
       </div>
 

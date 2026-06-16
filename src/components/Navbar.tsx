@@ -44,26 +44,33 @@ export default function Navbar({ searchTerm, setSearchTerm, cartCount, onOpenCar
               </button>
 
               {isAdmin ? (
-                <>
-                  <button onClick={() => window.dispatchEvent(new CustomEvent('toggle-admin'))} className="p-1 px-2 border border-yellow-400 bg-yellow-400 text-black rounded hover:bg-yellow-500 text-[10px] uppercase font-bold flex flex-shrink-0 items-center justify-center transition-colors">
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => window.dispatchEvent(new CustomEvent('toggle-admin'))} className="px-2 py-1 bg-zinc-950 text-white rounded-full hover:bg-yellow-500 hover:text-black text-[10px] uppercase font-black tracking-wider shadow-sm flex flex-shrink-0 items-center justify-center transition-all">
                     {lang === 'bn' ? 'এডমিন' : 'Admin'}
                   </button>
-                  <button onClick={logout} className="p-1 px-1.5 border border-gray-200 rounded bg-gray-100 text-zinc-600 hover:text-red-500 hover:border-red-500 text-[10px] uppercase font-bold flex items-center justify-center gap-1 flex-shrink-0 transition-colors">
+                  <button onClick={logout} className="p-1.5 border border-red-200 text-red-500 bg-red-50/40 rounded-full hover:bg-red-500 hover:text-white text-[10px] flex items-center justify-center flex-shrink-0 transition-all shadow-sm">
                     <LogOut className="w-3.5 h-3.5" />
                   </button>
-                </>
+                </div>
               ) : user ? (
-                <>
-                  <button onClick={() => window.dispatchEvent(new CustomEvent('toggle-profile'))} className="p-1 px-1.5 border border-gray-200 rounded bg-gray-100 text-zinc-600 hover:text-yellow-600 hover:border-yellow-400 text-[10px] uppercase font-bold flex items-center justify-center gap-1 flex-shrink-0 transition-colors">
-                    <UserIcon className="w-3.5 h-3.5" /> {lang === 'bn' ? 'প্রোফাইল' : 'Profile'}
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => window.dispatchEvent(new CustomEvent('toggle-profile'))} className="flex items-center gap-1 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 border border-yellow-500/20 px-2 py-1 rounded-full text-[10px] uppercase font-bold flex-shrink-0 transition-all shadow-sm">
+                    <div className="w-3.5 h-3.5 rounded-full bg-yellow-400 text-black text-[8px] font-black flex items-center justify-center uppercase">
+                      {(user.name || user.email || 'U')[0]}
+                    </div>
+                    <span>{lang === 'bn' ? 'প্রোফাইল' : 'Profile'}</span>
                   </button>
-                  <button onClick={logout} className="p-1 px-1.5 border border-gray-200 rounded bg-gray-100 text-zinc-600 hover:text-red-500 hover:border-red-500 text-[10px] uppercase font-bold flex items-center justify-center gap-1 flex-shrink-0 transition-colors">
-                    <LogOut className="w-3.5 h-3.5" /> {lang === 'bn' ? 'লগআউট' : 'Logout'}
+                  <button onClick={logout} className="p-1.5 border border-red-100 bg-red-50/50 text-gray-500 hover:text-red-500 rounded-full flex items-center justify-center flex-shrink-0 transition-all shadow-xs">
+                    <LogOut className="w-3.5 h-3.5" />
                   </button>
-                </>
+                </div>
               ) : (
-                <button onClick={() => window.dispatchEvent(new CustomEvent('toggle-auth'))} className="p-1 px-1.5 border border-gray-200 rounded bg-gray-100 text-zinc-600 hover:text-yellow-600 hover:border-yellow-400 text-[10px] uppercase font-bold flex-shrink-0 transition-colors">
-                   <LogIn className="w-4 h-4" />
+                <button 
+                  onClick={() => window.dispatchEvent(new CustomEvent('toggle-auth'))} 
+                  className="flex items-center gap-1 bg-amber-500 text-black hover:bg-amber-600 px-3 py-1.5 rounded-full text-[10px] uppercase font-black tracking-wider flex-shrink-0 transition-all shadow-md active:scale-95"
+                >
+                  <UserIcon className="w-3.5 h-3.5 stroke-[2.5px]" />
+                  <span>{lang === 'bn' ? 'লগইন / নিবন্ধন' : 'Sign In'}</span>
                 </button>
               )}
 
@@ -119,34 +126,41 @@ export default function Navbar({ searchTerm, setSearchTerm, cartCount, onOpenCar
           <div className="hidden lg:flex items-center gap-3 flex-shrink-0 order-2 lg:order-3 flex-wrap justify-end">
             {/* User Info / Login */}
             {user ? (
-              <div className="flex items-center gap-2">
-                <button onClick={() => window.dispatchEvent(new CustomEvent('toggle-profile'))} className="flex items-center gap-1.5 text-xs text-zinc-600 capitalize px-2 hidden xl:flex hover:text-yellow-600 transition-colors">
-                  <UserIcon className="w-3.5 h-3.5" />
-                  <span>{user.name || user.email.split('@')[0]}</span>
-                </button>
+              <div className="flex items-center gap-3">
                 <button 
-                  onClick={logout} 
-                  className="p-2 text-zinc-600 hover:text-red-500 flex items-center gap-1.5 text-xs uppercase font-bold border border-transparent rounded-full hover:bg-red-50 transition-all"
+                  onClick={() => window.dispatchEvent(new CustomEvent('toggle-profile'))} 
+                  className="flex items-center gap-2 text-xs font-semibold text-zinc-800 bg-gray-50 hover:bg-yellow-50 border border-gray-200 hover:border-yellow-400 py-1.5 px-3.5 rounded-full transition-all shadow-sm"
                 >
-                  <LogOut className="w-4 h-4" />
-                  {lang === 'bn' ? 'লগআউট' : 'Logout'}
+                  <div className="w-5 h-5 rounded-full bg-yellow-400 text-black text-[10px] font-black uppercase flex items-center justify-center">
+                    {(user.name || user.email || 'U')[0]}
+                  </div>
+                  <span className="capitalize">{user.name || user.email.split('@')[0]}</span>
                 </button>
+                
                 {isAdmin && (
                   <button 
                     onClick={() => window.dispatchEvent(new CustomEvent('toggle-admin'))} 
-                    className="p-2 text-black bg-yellow-400 hover:bg-yellow-500 flex items-center gap-1.5 text-xs uppercase font-bold rounded-full transition-all whitespace-nowrap"
+                    className="px-3.5 py-1.5 text-black bg-zinc-900 text-white hover:bg-yellow-400 hover:text-black transition-all text-xs uppercase font-black tracking-wider rounded-full shadow-md"
                   >
-                    {lang === 'bn' ? 'এডমিন' : 'Admin'}
+                    {lang === 'bn' ? 'এডমিন পোর্টাল' : 'Admin Portal'}
                   </button>
                 )}
+
+                <button 
+                  onClick={logout} 
+                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50/50 rounded-full transition-all"
+                  title={lang === 'bn' ? 'লগআউট' : 'Logout'}
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
             ) : (
               <button 
                 onClick={() => window.dispatchEvent(new CustomEvent('toggle-auth'))} 
-                className="p-2 text-zinc-600 hover:text-yellow-600 flex items-center gap-1.5 text-xs uppercase font-bold border border-gray-200 rounded-full hover:border-yellow-400 transition-all whitespace-nowrap"
+                className="px-4 py-2 text-yellow-700 bg-yellow-50/50 hover:bg-yellow-400 hover:text-black flex items-center gap-2 text-xs uppercase font-black tracking-wider border border-yellow-500/30 rounded-full transition-all whitespace-nowrap shadow-sm hover:shadow-md hover:scale-[1.02]"
               >
-                <LogIn className="w-4 h-4" />
-                {lang === 'bn' ? 'লগইন' : 'Login'}
+                <UserIcon className="w-4 h-4 stroke-[2.5px]" />
+                {lang === 'bn' ? 'লগইন / নিবন্ধন' : 'Sign In / Register'}
               </button>
             )}
 

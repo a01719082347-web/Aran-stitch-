@@ -72,8 +72,7 @@ service cloud.firestore {
       allow create: if isValidId(reviewId) && isSignedIn()
                    && isValidReview(incoming())
                    && incoming().userId == request.auth.uid
-                   && incoming().createdAt == request.time
-                   && exists(/databases/$(database)/documents/products/$(incoming().productId));
+                   && incoming().createdAt == request.time;
       allow update: if isAdmin();
       allow delete: if isAdmin() || (isSignedIn() && existing().userId == request.auth.uid);
     }

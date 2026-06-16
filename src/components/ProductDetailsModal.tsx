@@ -33,7 +33,15 @@ export default function ProductDetailsModal({ product, isOpen, onClose, onBuyNow
         try {
           const q = query(collection(db, 'reviews'), where('productId', '==', product.id));
           const snap = await getDocs(q);
-          const fReviews = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Review));
+          const fReviews = snap.docs.map(doc => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              user: data.userName || data.user || 'Guest User',
+              rating: data.rating,
+              comment: data.comment || ''
+            } as Review;
+          });
           setReviews([...(product.reviews || []), ...fReviews].filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i)); // merge local + firestore
         } catch (e) {
           console.error(e);
@@ -64,7 +72,7 @@ export default function ProductDetailsModal({ product, isOpen, onClose, onBuyNow
         comment: newReviewText,
         createdAt: serverTimestamp()
       });
-      toast.success('Review submitted');
+      toast.success(lang === 'bn' ? 'রিভিউ সফলভাবে সাবমিট হয়েছে!' : 'Review submitted successfully!');
       setNewReviewText('');
       setReviews(prev => [{
         id: reviewId,
@@ -74,7 +82,7 @@ export default function ProductDetailsModal({ product, isOpen, onClose, onBuyNow
       }, ...prev]);
     } catch (e) {
       handleFirestoreError(e, OperationType.CREATE, `reviews/rev_${Date.now()}`);
-      toast.error('Failed to submit review');
+      toast.error(lang === 'bn' ? 'রিভিউ সাবমিট করতে ব্যর্থ হয়েছে' : 'Failed to submit review');
     } finally {
       setSubmittingReview(false);
     }

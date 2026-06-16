@@ -80,26 +80,45 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           >
             <button 
               onClick={onClose}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 transition-colors"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 hover:bg-gray-100 p-1.5 rounded-full transition-all"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="text-center mb-8 mt-4">
-              <h2 className="text-2xl font-serif font-bold uppercase text-yellow-600 tracking-widest mb-3">
-                {isLogin 
-                  ? (lang === 'bn' ? 'লগইন' : 'Account Login') 
-                  : (lang === 'bn' ? 'সাইন আপ' : 'Create Account')}
+            <div className="text-center mb-4 mt-2">
+              <h2 className="text-xl font-serif font-black uppercase text-zinc-900 tracking-widest">
+                ARAN STITCH
               </h2>
-              <p className="text-gray-500 text-sm">
-                {isLogin 
-                  ? (lang === 'bn' ? 'আপনার অ্যাকাউন্টে ফিরে আসুন' : 'Sign in to your account to continue')
-                  : (lang === 'bn' ? 'নতুন অ্যাকাউন্ট তৈরি করুন' : 'Sign up for a new account')}
-              </p>
+            </div>
+
+            {/* Premium Tab Segmented Switcher */}
+            <div className="flex bg-zinc-100 p-1 rounded-full mb-6 relative">
+              <button
+                type="button"
+                onClick={() => { setIsLogin(true); setError(''); }}
+                className={`flex-1 text-center py-2 text-xs uppercase tracking-wider font-extrabold rounded-full transition-all duration-300 ${
+                  isLogin 
+                    ? 'bg-yellow-400 text-black shadow-sm scale-[1.02]' 
+                    : 'text-gray-500 hover:text-zinc-900'
+                }`}
+              >
+                {lang === 'bn' ? 'লগইন করুন' : 'Sign In'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setIsLogin(false); setError(''); }}
+                className={`flex-1 text-center py-2 text-xs uppercase tracking-wider font-extrabold rounded-full transition-all duration-300 ${
+                  !isLogin 
+                    ? 'bg-yellow-400 text-black shadow-sm scale-[1.02]' 
+                    : 'text-gray-500 hover:text-zinc-900'
+                }`}
+              >
+                {lang === 'bn' ? 'নিবন্ধন করুন' : 'Register'}
+              </button>
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 text-xs p-3 rounded mb-4 text-center">
+              <div className="bg-red-50 border border-red-200 text-red-600 font-medium text-xs p-3.5 rounded-lg mb-4 text-center animate-shake leading-snug">
                 {error}
               </div>
             )}
