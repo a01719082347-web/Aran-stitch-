@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, ChangeEvent, FormEvent } from 'react';
 import { Camera, Send, Scissors } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -24,7 +24,7 @@ export default function CustomOrder() {
     return () => window.removeEventListener('open-custom-order', handleCustomizeEvent);
   }, []);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
       setImages(prev => [...prev, ...selectedFiles].slice(0, 3)); // Max 3 images
@@ -35,7 +35,7 @@ export default function CustomOrder() {
     setImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!description && !fabric && !measurements && images.length === 0) return;
 

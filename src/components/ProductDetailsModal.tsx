@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { doc, setDoc, serverTimestamp, getDocs, collection, query, where } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDocs, collection, query, where, deleteDoc } from 'firebase/firestore';
 
 interface ProductDetailsProps {
   product: Product | null;
@@ -17,12 +17,17 @@ interface ProductDetailsProps {
 
 export default function ProductDetailsModal({ product, isOpen, onClose, onBuyNow }: ProductDetailsProps) {
   const { lang } = useLanguage();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [newReviewText, setNewReviewText] = useState('');
   const [newReviewRating, setNewReviewRating] = useState(5);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
+
+  // Admin replying states
+  const [replyingReviewId, setReplyingReviewId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
 
   useEffect(() => {
     setIsZoomed(false);
@@ -39,7 +44,8 @@ export default function ProductDetailsModal({ product, isOpen, onClose, onBuyNow
               id: doc.id,
               user: data.userName || data.user || 'Guest User',
               rating: data.rating,
-              comment: data.comment || ''
+              comment: data.comment || '',
+              reply: data.reply || ''
             } as Review;
           });
           setReviews([...(product.reviews || []), ...fReviews].filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i)); // merge local + firestore
@@ -78,13 +84,46 @@ export default function ProductDetailsModal({ product, isOpen, onClose, onBuyNow
         id: reviewId,
         user: user.name || user.email.split('@')[0],
         rating: newReviewRating,
-        comment: newReviewText
+        comment: newReviewText,
+        reply: ''
       }, ...prev]);
     } catch (e) {
       handleFirestoreError(e, OperationType.CREATE, `reviews/rev_${Date.now()}`);
       toast.error(lang === 'bn' ? 'রিভিউ সাবমিট করতে ব্যর্থ হয়েছে' : 'Failed to submit review');
     } finally {
       setSubmittingReview(false);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!window.confirm(lang === 'bn' ? 'আপনি কি নিশ্চিত যে এই রিভিউটি ডিলেট করতে চান?' : 'Are you sure you want to delete this review?')) return;
+    try {
+      await deleteDoc(doc(db, 'reviews', reviewId));
+      setReviews(prev => prev.filter(r => r.id !== reviewId));
+      toast.success(lang === 'bn' ? 'রিভিউ সফলভাবে মুছে ফেলা হয়েছে!' : 'Review deleted successfully!');
+    } catch (e) {
+      handleFirestoreError(e, OperationType.DELETE, `reviews/${reviewId}`);
+      toast.error(lang === 'bn' ? 'রিভিউ মুছে ফেলা সম্ভব হয়নি' : 'Failed to delete review');
+    }
+  };
+
+  const handleSaveReply = async (reviewId: string) => {
+    if (!replyText.trim()) return;
+    setSendingReply(true);
+    try {
+      await setDoc(doc(db, 'reviews', reviewId), {
+        reply: replyText.trim()
+      }, { merge: true });
+      
+      setReviews(prev => prev.map(r => r.id === reviewId ? { ...r, reply: replyText.trim() } : r));
+      setReplyingReviewId(null);
+      setReplyText('');
+      toast.success(lang === 'bn' ? 'উত্তরটি সফলভাবে সংরক্ষিত হয়েছে!' : 'Reply saved successfully!');
+    } catch (e) {
+      handleFirestoreError(e, OperationType.UPDATE, `reviews/${reviewId}`);
+      toast.error(lang === 'bn' ? 'উত্তর সেভ করতে ব্যর্থ হয়েছে' : 'Failed to save reply');
+    } finally {
+      setSendingReply(false);
     }
   };
 
@@ -266,7 +305,18 @@ export default function ProductDetailsModal({ product, isOpen, onClose, onBuyNow
                     reviews.map((rv, i) => (
                       <div key={i} className="border-b border-gray-100 pb-4 last:border-0">
                         <div className="flex justify-between items-start mb-1">
-                          <span className="font-bold text-sm text-gray-900">{rv.user}</span>
+                          <div>
+                            <span className="font-bold text-sm text-gray-900 mr-2">{rv.user}</span>
+                            {isAdmin && (
+                              <button
+                                onClick={() => handleDeleteReview(rv.id)}
+                                className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-1 rounded transition-colors inline-flex items-center align-middle"
+                                title={lang === 'bn' ? 'রিভিউ মুছে ফেলুন' : 'Delete Review'}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
                           <div className="flex gap-0.5">
                             {[1, 2, 3, 4, 5].map(star => (
                               <Star key={star} className={`w-3 h-3 ${star <= rv.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} />
@@ -274,6 +324,58 @@ export default function ProductDetailsModal({ product, isOpen, onClose, onBuyNow
                           </div>
                         </div>
                         <p className="text-gray-600 text-sm mt-1">{rv.comment}</p>
+
+                        {/* Admin reply sub-card if it exists */}
+                        {rv.reply && (
+                          <div className="mt-2 ml-4 p-3 bg-yellow-50 border-l-[3px] border-yellow-500 rounded text-sm text-gray-800">
+                            <span className="font-bold text-xs text-yellow-800 uppercase block mb-1">
+                              {lang === 'bn' ? 'এডমিন উত্তর' : 'Admin Reply'}
+                            </span>
+                            <p>{rv.reply}</p>
+                          </div>
+                        )}
+
+                        {/* Reply Button and Reply Box for Admins */}
+                        {isAdmin && (
+                          <div className="mt-2 text-right">
+                            <button
+                              onClick={() => {
+                                setReplyingReviewId(replyingReviewId === rv.id ? null : rv.id);
+                                setReplyText(rv.reply || '');
+                              }}
+                              className="text-xs text-teal-600 hover:text-teal-800 font-semibold uppercase tracking-wider flex items-center gap-1 ml-auto"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                              {rv.reply ? (lang === 'bn' ? 'রিপ্লাই এডিট করুন' : 'Edit Reply') : (lang === 'bn' ? 'উত্তর দিন' : 'Reply')}
+                            </button>
+                          </div>
+                        )}
+
+                        {replyingReviewId === rv.id && (
+                          <div className="mt-3 bg-zinc-50 p-3 rounded border border-gray-200">
+                            <textarea
+                              value={replyText}
+                              onChange={e => setReplyText(e.target.value)}
+                              placeholder={lang === 'bn' ? 'এখানে আপনার উত্তর লিখুন...' : 'Write your reply here...'}
+                              className="w-full bg-white border border-gray-300 rounded p-2 text-sm text-gray-900 focus:outline-none focus:border-yellow-400 h-16 resize-none mb-2"
+                            />
+                            <div className="flex justify-end gap-2 text-xs">
+                              <button
+                                onClick={() => setReplyingReviewId(null)}
+                                className="px-3 py-1.5 border border-gray-300 rounded text-gray-700 font-bold hover:bg-gray-100 uppercase"
+                              >
+                                {lang === 'bn' ? 'বাতিল' : 'Cancel'}
+                              </button>
+                              <button
+                                disabled={sendingReply}
+                                onClick={() => handleSaveReply(rv.id)}
+                                className="px-3 py-1.5 bg-yellow-400 text-black font-bold rounded hover:bg-yellow-500 uppercase disabled:opacity-50"
+                              >
+                                {sendingReply ? (lang === 'bn' ? 'সেভ হচ্ছে...' : 'Saving...') : (lang === 'bn' ? 'সেভ করুন' : 'Save Reply')}
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))
                   )}

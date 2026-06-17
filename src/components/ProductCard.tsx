@@ -12,6 +12,7 @@ interface ProductCardProps {
   product: Product;
   onBuyNow: (product: Product, action: 'cart' | 'order' | 'whatsapp') => void;
   onDetails?: () => void;
+  key?: any;
 }
 
 export default function ProductCard({ product, onBuyNow, onDetails }: ProductCardProps) {

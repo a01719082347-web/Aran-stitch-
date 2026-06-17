@@ -1,6 +1,6 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { Product } from '../types';
-import { ArrowLeft, Trash2, Plus, Image as ImageIcon, X, Info, Package, Settings, Edit, LogOut, Star } from 'lucide-react';
+import { ArrowLeft, Trash2, Plus, Image as ImageIcon, X, Info, Package, Settings, Edit, LogOut, Star, MessageCircle } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../lib/firebase';
@@ -28,6 +28,11 @@ export default function AdminDashboard({ products, setProducts, onExit }: AdminD
 
   const [dbReviews, setDbReviews] = useState<any[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(false);
+
+  // Admin reply states inside Dashboard
+  const [replyingReviewId, setReplyingReviewId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [savingReply, setSavingReply] = useState(false);
 
   // Automatically sync local catalog products to Firestore so the review 'exists' check can always pass
   useEffect(() => {
@@ -94,6 +99,26 @@ export default function AdminDashboard({ products, setProducts, onExit }: AdminD
     } catch (error) {
       console.error("Error deleting review:", error);
       toast.error(lang === 'bn' ? 'রিভিউ মুছে ফেলা সম্ভব হয়নি' : 'Failed to delete review');
+    }
+  };
+
+  const handleSaveReplyDashboard = async (reviewId: string) => {
+    if (!replyText.trim()) return;
+    setSavingReply(true);
+    try {
+      await setDoc(doc(db, 'reviews', reviewId), {
+        reply: replyText.trim()
+      }, { merge: true });
+      
+      setDbReviews(prev => prev.map(r => r.id === reviewId ? { ...r, reply: replyText.trim() } : r));
+      setReplyingReviewId(null);
+      setReplyText('');
+      toast.success(lang === 'bn' ? 'উত্তরটি সফলভাবে সংরক্ষিত হয়েছে!' : 'Reply saved successfully!');
+    } catch (error) {
+      console.error("Error saving reply:", error);
+      toast.error(lang === 'bn' ? 'উত্তর সেভ করতে ব্যর্থ হয়েছে' : 'Failed to save reply');
+    } finally {
+      setSavingReply(false);
     }
   };
 
@@ -817,21 +842,67 @@ export default function AdminDashboard({ products, setProducts, onExit }: AdminD
                             <span className="text-xs text-gray-500 mt-1 block">({rv.rating}/5)</span>
                           </td>
                           <td className="p-4">
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap max-w-sm line-clamp-3 leading-relaxed" title={rv.comment}>
+                            <p className="text-sm text-gray-700 whitespace-pre-wrap max-w-sm leading-relaxed" title={rv.comment}>
                               {rv.comment}
                             </p>
+                            {rv.reply && (
+                              <div className="mt-2 p-2.5 bg-yellow-50 border-l-[3px] border-yellow-500 rounded text-xs text-gray-800">
+                                <span className="font-bold text-yellow-800 uppercase block mb-1">
+                                  {lang === 'bn' ? 'এডমিন উত্তর' : 'Admin Reply'}
+                                </span>
+                                <p>{rv.reply}</p>
+                              </div>
+                            )}
+
+                            {replyingReviewId === rv.id && (
+                              <div className="mt-3 bg-zinc-50 p-3 rounded border border-gray-200">
+                                <textarea
+                                  value={replyText}
+                                  onChange={e => setReplyText(e.target.value)}
+                                  placeholder={lang === 'bn' ? 'এখানে আপনার উত্তর লিখুন...' : 'Write your reply here...'}
+                                  className="w-full bg-white border border-gray-300 rounded p-2 text-sm text-gray-900 focus:outline-none focus:border-yellow-400 h-16 resize-none mb-2"
+                                />
+                                <div className="flex justify-end gap-2 text-xs">
+                                  <button
+                                    onClick={() => setReplyingReviewId(null)}
+                                    className="px-2.5 py-1.5 border border-gray-300 rounded text-gray-700 font-bold hover:bg-gray-100 uppercase"
+                                  >
+                                    {lang === 'bn' ? 'বাতিল' : 'Cancel'}
+                                  </button>
+                                  <button
+                                    disabled={savingReply}
+                                    onClick={() => handleSaveReplyDashboard(rv.id)}
+                                    className="px-2.5 py-1.5 bg-yellow-400 text-black font-bold rounded hover:bg-yellow-500 uppercase disabled:opacity-50"
+                                  >
+                                    {savingReply ? '...' : (lang === 'bn' ? 'সেভ করুন' : 'Save')}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </td>
                           <td className="p-4">
                             <span className="text-xs text-gray-600 font-medium block whitespace-nowrap">{reviewDateStr}</span>
                           </td>
                           <td className="p-4 text-center">
-                            <button
-                              onClick={() => handleDeleteReview(rv.id)}
-                              className="text-gray-400 hover:text-red-500 transition-colors p-2 bg-gray-50 hover:bg-red-50 hover:border-red-200 rounded border border-gray-200 outline-none"
-                              title={lang === 'bn' ? 'ডিলেট করুন' : 'Delete Review'}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex gap-2 justify-center">
+                              <button
+                                onClick={() => {
+                                  setReplyingReviewId(replyingReviewId === rv.id ? null : rv.id);
+                                  setReplyText(rv.reply || '');
+                                }}
+                                className="text-gray-400 hover:text-cyan-600 transition-colors p-2 bg-gray-50 hover:bg-cyan-50 hover:border-cyan-200 rounded border border-gray-200 outline-none"
+                                title={lang === 'bn' ? 'রিপ্লাই দিন / এডিট করুন' : 'Reply / Edit Reply'}
+                              >
+                                <MessageCircle className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteReview(rv.id)}
+                                className="text-gray-400 hover:text-red-500 transition-colors p-2 bg-gray-50 hover:bg-red-50 hover:border-red-200 rounded border border-gray-200 outline-none"
+                                title={lang === 'bn' ? 'ডিলেট করুন' : 'Delete Review'}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
