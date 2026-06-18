@@ -1,0 +1,30 @@
+{
+  "short_name": "Aran Stitch",
+  "name": "Aran Stitch",
+  "description": "Premium Tailoring and Boutique by Aran Family Members",
+  "icons": [
+    {
+      "src": "/logo.jpg",
+      "type": "image/jpeg",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.jpg",
+      "type": "image/jpeg",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.jpg",
+      "type": "image/jpeg",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#115e59",
+  "theme_color": "#eab308",
+  "display": "standalone",
+  "orientation": "portrait"
+}
