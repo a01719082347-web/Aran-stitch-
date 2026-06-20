@@ -1,4 +1,4 @@
-import { ShoppingBag, Search, ShoppingCart, Globe, LogIn, User as UserIcon, LogOut } from 'lucide-react';
+import { ShoppingBag, Search, ShoppingCart, Globe, LogIn, User as UserIcon, LogOut, Facebook, Instagram, Youtube, MessageCircle } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { getDirectImageUrl } from '../utils';
@@ -22,6 +22,37 @@ export default function Navbar({ searchTerm, setSearchTerm, cartCount, onOpenCar
 
   return (
     <nav className="fixed w-full bg-white text-zinc-900 z-50 border-b border-gray-200 top-0 shadow-sm">
+      {/* Marquee with Social Media Icons on the Right Corner */}
+      <div className="bg-[#f0c33a] text-neutral-900 py-1.5 px-4 overflow-hidden border-b border-yellow-500 flex justify-between items-center gap-4 font-bold text-[11px] h-8">
+        <div className="flex-1 min-w-0 overflow-hidden flex items-center">
+          <marquee behavior="scroll" direction="left" scrollamount="3.5" className="w-full">
+            <div className="inline-flex items-center gap-10 whitespace-nowrap">
+              <span>{lang === 'bn' ? 'আরান স্টিচে আপনাকে স্বাগত! পরিবারে ৪ সদস্যের নামের প্রথম অক্ষর নিয়ে তৈরি আমাদের ভালোবাসার ব্র্যান্ড।' : 'Welcome to ARAN STITCH! A lifestyle boutique named after our 4 family members.'}</span>
+              <span className="text-amber-800 text-base">✦</span>
+              <span>{lang === 'bn' ? 'যেকোনো সাহায্য বা ডিজাইন কাস্টমাইজেশনের জন্য সরাসরি হোয়াটসঅ্যাপে আমাদের টেইলরের সাথে যোগাযোগ করুন।' : 'For design customization, contact our tailoring experts directly on WhatsApp.'}</span>
+              <span className="text-amber-800 text-base">✦</span>
+              <span>{lang === 'bn' ? 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি (হোম ডেলিভারি সুবিধা)।' : 'Cash on delivery is available all over Bangladesh with safe delivery.'}</span>
+            </div>
+          </marquee>
+        </div>
+
+        {/* Static social icons at the right corner (mobile & desktop) */}
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-shrink-0 bg-[#f0c33a] pl-2 z-10">
+          <a href={t('social.facebook').startsWith('http') ? t('social.facebook') : 'https://facebook.com'} target="_blank" rel="noopener noreferrer" className="hover:text-blue-800 transition-colors" title="Facebook">
+            <Facebook className="w-3.5 h-3.5" />
+          </a>
+          <a href={t('social.instagram').startsWith('http') ? t('social.instagram') : 'https://instagram.com'} target="_blank" rel="noopener noreferrer" className="hover:text-pink-700 transition-colors" title="Instagram">
+            <Instagram className="w-3.5 h-3.5" />
+          </a>
+          <a href={t('social.youtube').startsWith('http') ? t('social.youtube') : 'https://youtube.com'} target="_blank" rel="noopener noreferrer" className="hover:text-red-700 transition-colors" title="YouTube">
+            <Youtube className="w-3.5 h-3.5" />
+          </a>
+          <a href={`https://wa.me/${t('social.whatsapp').replace(/\D/g, '') || '8801719082347'}`} target="_blank" rel="noopener noreferrer" className="hover:text-green-700 transition-colors" title="WhatsApp">
+            <MessageCircle className="w-3.5 h-3.5 text-green-700 fill-green-700/10" />
+          </a>
+        </div>
+      </div>
+
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-wrap lg:flex-nowrap justify-between items-center py-2 lg:h-16 gap-3 lg:gap-4">
           
@@ -86,42 +117,6 @@ export default function Navbar({ searchTerm, setSearchTerm, cartCount, onOpenCar
             </div>
           </div>
 
-          {/* Nav Links & Search */}
-          <div className="flex items-center gap-4 md:gap-6 text-xs uppercase tracking-tighter opacity-80 font-medium order-3 lg:order-2 w-full lg:w-auto flex-1 overflow-x-auto scrollbar-hide py-1 px-2 lg:px-0 mt-2 lg:mt-0">
-            {navLinks.map((link) => (
-              link.href ? (
-                <a 
-                  key={link.name} 
-                  href={link.href}
-                  className="text-zinc-600 hover:text-yellow-600 transition-colors whitespace-nowrap flex-shrink-0"
-                >
-                  {link.name}
-                </a>
-              ) : (
-                <button 
-                  key={link.name} 
-                  onClick={link.action}
-                  className="text-zinc-600 hover:text-yellow-600 transition-colors whitespace-nowrap flex-shrink-0 uppercase font-medium"
-                >
-                  {link.name}
-                </button>
-              )
-            ))}
-            
-            {/* Search Bar - Inline with Nav Links */}
-            <div className="relative flex-shrink-0 w-44 md:w-56 ml-auto lg:ml-4">
-              <input 
-                type="text" 
-                placeholder={t('nav.search')} 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-gray-100 border border-gray-200 text-zinc-900 rounded-full py-1.5 pl-10 pr-3 text-xs focus:outline-none focus:border-yellow-400 transition-all w-full"
-                style={{ borderRadius: '9999px' }}
-              />
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
-            </div>
-          </div>
-          
           {/* Actions (Login, Lang, Search) */}
           <div className="hidden lg:flex items-center gap-3 flex-shrink-0 order-2 lg:order-3 flex-wrap justify-end">
             {/* User Info / Login */}

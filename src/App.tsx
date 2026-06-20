@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import SubNavbar from './components/SubNavbar';
 import ProductsSection from './components/Products';
 import CustomOrder from './components/CustomOrder';
 import AboutModal from './components/AboutModal';
@@ -161,6 +162,7 @@ I would like to order this. Please let me know the next steps.`;
       
       <main>
         <Hero />
+        <SubNavbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         <ProductsSection 
           products={products} 
           searchTerm={searchTerm} 

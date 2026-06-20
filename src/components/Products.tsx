@@ -55,14 +55,10 @@ export default function ProductsSection({ searchTerm, onBuyNow, products, cart, 
   };
 
   return (
-    <section id="products" className="py-24 bg-gray-50 relative overflow-hidden">
+    <section id="products" className="pt-[5px] pb-24 bg-gray-50 relative overflow-hidden">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="text-center mb-10">
-          <h2 className="text-sm text-yellow-600 font-bold uppercase tracking-[0.2em] mb-2">{t('prod.collection')}</h2>
-          <h3 className="text-4xl md:text-5xl font-serif font-bold text-gray-900 uppercase">{t('prod.timeless')}</h3>
-          <div className="w-24 h-1 bg-yellow-400 mx-auto mt-6 mb-8"></div>
-          
           {searchTerm && (
             <p className="mt-6 text-gray-500">{t('prod.showing')} "{searchTerm}"</p>
           )}
