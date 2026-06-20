@@ -27,11 +27,11 @@ export default function Navbar({ searchTerm, setSearchTerm, cartCount, onOpenCar
         <div className="flex-1 min-w-0 overflow-hidden flex items-center">
           <marquee behavior="scroll" direction="left" scrollamount="3.5" className="w-full">
             <div className="inline-flex items-center gap-10 whitespace-nowrap">
-              <span>{lang === 'bn' ? 'আরান স্টিচে আপনাকে স্বাগত! পরিবারে ৪ সদস্যের নামের প্রথম অক্ষর নিয়ে তৈরি আমাদের ভালোবাসার ব্র্যান্ড।' : 'Welcome to ARAN STITCH! A lifestyle boutique named after our 4 family members.'}</span>
+              <span>{t('marquee.text1')}</span>
               <span className="text-amber-800 text-base">✦</span>
-              <span>{lang === 'bn' ? 'যেকোনো সাহায্য বা ডিজাইন কাস্টমাইজেশনের জন্য সরাসরি হোয়াটসঅ্যাপে আমাদের টেইলরের সাথে যোগাযোগ করুন।' : 'For design customization, contact our tailoring experts directly on WhatsApp.'}</span>
+              <span>{t('marquee.text2')}</span>
               <span className="text-amber-800 text-base">✦</span>
-              <span>{lang === 'bn' ? 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি (হোম ডেলিভারি সুবিধা)।' : 'Cash on delivery is available all over Bangladesh with safe delivery.'}</span>
+              <span>{t('marquee.text3')}</span>
             </div>
           </marquee>
         </div>

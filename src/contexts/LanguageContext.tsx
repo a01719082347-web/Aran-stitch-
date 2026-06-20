@@ -4,6 +4,9 @@ type Language = 'en' | 'bn';
 
 const defaultTranslations: Record<Language, Record<string, string>> = {
   en: {
+    'marquee.text1': 'Welcome to ARAN STITCH! A lifestyle boutique named after our 4 family members.',
+    'marquee.text2': 'For design customization, contact our tailoring experts directly on WhatsApp.',
+    'marquee.text3': 'Cash on delivery is available all over Bangladesh with safe delivery.',
     'nav.home': 'Home',
     'nav.products': 'Products',
     'nav.about': 'About Us',
@@ -69,6 +72,9 @@ const defaultTranslations: Record<Language, Record<string, string>> = {
     'site.font': "'Playfair Display', serif",
   },
   bn: {
+    'marquee.text1': 'আরান স্টিচে আপনাকে স্বাগত! পরিবারে ৪ সদস্যের নামের প্রথম অক্ষর নিয়ে তৈরি আমাদের ভালোবাসার ব্র্যান্ড।',
+    'marquee.text2': 'যেকোনো সাহায্য বা ডিজাইন কাস্টমাইজেশনের জন্য সরাসরি হোয়াটসঅ্যাপে আমাদের টেইলরের সাথে যোগাযোগ করুন।',
+    'marquee.text3': 'সারা বাংলাদেশে ক্যাশ অন ডেলিভারি (হোম ডেলিভারি সুবিধা)।',
     'nav.home': 'হোম',
     'nav.products': 'পণ্য',
     'nav.about': 'আমাদের সম্পর্কে',

@@ -187,14 +187,14 @@ export default function ProductCard({ product, onBuyNow, onDetails }: ProductCar
       </div>
       
       <div className="flex flex-col flex-grow p-3 bg-white">
-        <h3 onClick={onDetails} className="font-medium text-[13px] md:text-sm text-gray-900 mb-0.5 line-clamp-2 cursor-pointer hover:text-yellow-600 transition-colors">{product.name}</h3>
+        <h3 onClick={onDetails} className="font-medium text-[13px] md:text-sm text-gray-900 mb-0.5 cursor-pointer hover:text-yellow-600 transition-colors">{product.name}</h3>
         <p className="text-gray-400 text-[10px] mb-2">{getCategoryLabel(product.category)}</p>
 
         <div className="flex items-center gap-1 mb-2">
           {[1, 2, 3, 4, 5].map(star => (
             <Star 
               key={star}
-              className={`w-3 h-3 ${star <= avgRating ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200'}`}
+              className={`w-3.5 h-3.5 md:w-4 md:h-4 ${star <= avgRating ? 'fill-yellow-400 text-yellow-400' : 'fill-gray-200 text-gray-200'}`}
             />
           ))}
           <span className="text-[10px] text-gray-500 ml-1">({reviewCount})</span>

@@ -303,6 +303,24 @@ export default function AdminDashboard({ products, setProducts, onExit }: AdminD
 
             <div className="space-y-8">
               <div className="space-y-4">
+                <h3 className="text-xl font-bold border-b border-gray-200 pb-2">Top Bar Marquee Settings</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs uppercase tracking-wider text-gray-600 font-medium mb-1">Marquee Text 1</label>
+                    <input className="w-full" value={translations[editLang]['marquee.text1'] || ''} onChange={(e) => updateTranslation(editLang, 'marquee.text1', e.target.value)} />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs uppercase tracking-wider text-gray-600 font-medium mb-1">Marquee Text 2</label>
+                    <input className="w-full" value={translations[editLang]['marquee.text2'] || ''} onChange={(e) => updateTranslation(editLang, 'marquee.text2', e.target.value)} />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs uppercase tracking-wider text-gray-600 font-medium mb-1">Marquee Text 3</label>
+                    <input className="w-full" value={translations[editLang]['marquee.text3'] || ''} onChange={(e) => updateTranslation(editLang, 'marquee.text3', e.target.value)} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
                 <h3 className="text-xl font-bold border-b border-gray-200 pb-2">Hero Section</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
