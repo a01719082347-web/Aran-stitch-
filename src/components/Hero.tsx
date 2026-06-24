@@ -21,7 +21,7 @@ export default function Hero() {
     : COVER_IMAGE;
 
   return (
-    <section id="home" className="relative min-h-[220px] sm:min-h-[240px] md:h-[260px] flex items-center justify-center overflow-hidden bg-gray-50 pt-28 sm:pt-32 md:pt-36 pb-0">
+    <section id="home" className="relative min-h-[260px] sm:min-h-[360px] md:min-h-[520px] lg:min-h-[640px] flex items-center justify-center overflow-hidden bg-gray-50 pt-32 sm:pt-36 md:pt-44 pb-12 md:pb-20">
       {/* Background Image with Light Overlay */}
       <motion.div 
         initial={{ opacity: 0, scale: 1.05 }}
