@@ -87,6 +87,7 @@ export default function ProductDetailsModal({ product, isOpen, onClose, onBuyNow
         comment: newReviewText,
         reply: ''
       }, ...prev]);
+      window.dispatchEvent(new CustomEvent('refresh-reviews'));
     } catch (e) {
       handleFirestoreError(e, OperationType.CREATE, `reviews/rev_${Date.now()}`);
       toast.error(lang === 'bn' ? 'রিভিউ সাবমিট করতে ব্যর্থ হয়েছে' : 'Failed to submit review');
@@ -101,6 +102,7 @@ export default function ProductDetailsModal({ product, isOpen, onClose, onBuyNow
       await deleteDoc(doc(db, 'reviews', reviewId));
       setReviews(prev => prev.filter(r => r.id !== reviewId));
       toast.success(lang === 'bn' ? 'রিভিউ সফলভাবে মুছে ফেলা হয়েছে!' : 'Review deleted successfully!');
+      window.dispatchEvent(new CustomEvent('refresh-reviews'));
     } catch (e) {
       handleFirestoreError(e, OperationType.DELETE, `reviews/${reviewId}`);
       toast.error(lang === 'bn' ? 'রিভিউ মুছে ফেলা সম্ভব হয়নি' : 'Failed to delete review');
@@ -119,6 +121,7 @@ export default function ProductDetailsModal({ product, isOpen, onClose, onBuyNow
       setReplyingReviewId(null);
       setReplyText('');
       toast.success(lang === 'bn' ? 'উত্তরটি সফলভাবে সংরক্ষিত হয়েছে!' : 'Reply saved successfully!');
+      window.dispatchEvent(new CustomEvent('refresh-reviews'));
     } catch (e) {
       handleFirestoreError(e, OperationType.UPDATE, `reviews/${reviewId}`);
       toast.error(lang === 'bn' ? 'উত্তর সেভ করতে ব্যর্থ হয়েছে' : 'Failed to save reply');

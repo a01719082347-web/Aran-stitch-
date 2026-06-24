@@ -35,9 +35,9 @@ export default function SubNavbar({ searchTerm, setSearchTerm }: SubNavbarProps)
                 <button 
                   key={link.name} 
                   onClick={link.action}
-                  className="hover:text-yellow-600 transition-colors relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-yellow-400 hover:after:w-full after:transition-all after:duration-300 uppercase font-bold whitespace-nowrap cursor-pointer"
+                  className="hover:text-yellow-600 transition-colors relative py-1 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[2px] after:bg-yellow-400 hover:after:w-full after:transition-all after:duration-300 uppercase font-bold whitespace-nowrap cursor-pointer text-zinc-800"
                 >
-                  {link.name}
+                  <span>{link.name}</span>
                 </button>
               )
             ))}

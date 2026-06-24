@@ -96,6 +96,7 @@ export default function AdminDashboard({ products, setProducts, onExit }: AdminD
       await deleteDoc(doc(db, 'reviews', reviewId));
       setDbReviews(prev => prev.filter(r => r.id !== reviewId));
       toast.success(lang === 'bn' ? 'রিভিউ সফলভাবে মুছে ফেলা হয়েছে!' : 'Review deleted successfully!');
+      window.dispatchEvent(new CustomEvent('refresh-reviews'));
     } catch (error) {
       console.error("Error deleting review:", error);
       toast.error(lang === 'bn' ? 'রিভিউ মুছে ফেলা সম্ভব হয়নি' : 'Failed to delete review');
@@ -114,6 +115,7 @@ export default function AdminDashboard({ products, setProducts, onExit }: AdminD
       setReplyingReviewId(null);
       setReplyText('');
       toast.success(lang === 'bn' ? 'উত্তরটি সফলভাবে সংরক্ষিত হয়েছে!' : 'Reply saved successfully!');
+      window.dispatchEvent(new CustomEvent('refresh-reviews'));
     } catch (error) {
       console.error("Error saving reply:", error);
       toast.error(lang === 'bn' ? 'উত্তর সেভ করতে ব্যর্থ হয়েছে' : 'Failed to save reply');

@@ -10,10 +10,12 @@ import CartDrawer from './components/CartDrawer';
 import CheckoutModal from './components/CheckoutModal';
 import AdminDashboard from './components/AdminDashboard';
 import AuthModal from './components/AuthModal';
-import { Product, CartItem } from './types';
+import { Product, CartItem, Review } from './types';
 import { products as initialProducts } from './data';
 import { useAuth } from './contexts/AuthContext';
 import { useLanguage } from './contexts/LanguageContext';
+import { db } from './lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 
 import UserProfile from './components/UserProfile';
 import FloatingContact from './components/FloatingContact';
@@ -31,6 +33,56 @@ export default function App() {
     const saved = localStorage.getItem('aran_products');
     return saved ? JSON.parse(saved) : initialProducts;
   });
+
+  // Fetch and synchronize all customer reviews from Firestore to update ratings on the Home page
+  const fetchAllReviews = async () => {
+    try {
+      const snap = await getDocs(collection(db, 'reviews'));
+      const allReviews = snap.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          productId: data.productId,
+          user: data.userName || data.user || 'Guest User',
+          rating: data.rating,
+          comment: data.comment || '',
+          reply: data.reply || ''
+        };
+      });
+
+      setProducts(prevProducts => {
+        return prevProducts.map(p => {
+          const productFirestoreReviews = allReviews.filter(r => r.productId === p.id).map(r => ({
+            id: r.id,
+            user: r.user,
+            rating: r.rating,
+            comment: r.comment,
+            reply: r.reply
+          }));
+          
+          // Merge with initial system reviews to prevent losing any, keeping IDs unique
+          const mergedReviews = [...(p.reviews || []), ...productFirestoreReviews].filter(
+            (v, i, a) => a.findIndex(t => t.id === v.id) === i
+          );
+          
+          return {
+            ...p,
+            reviews: mergedReviews
+          };
+        });
+      });
+    } catch (err) {
+      console.error("Failed to fetch/sync reviews from Firestore: ", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllReviews();
+    window.addEventListener('refresh-reviews', fetchAllReviews);
+    return () => {
+      window.removeEventListener('refresh-reviews', fetchAllReviews);
+    };
+  }, []);
 
   useEffect(() => {
     document.title = t('site.name');
